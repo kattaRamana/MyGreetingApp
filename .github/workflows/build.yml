@@ -3,7 +3,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -13,12 +13,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          repository_root: .
-          buildozer_version: stable
-          command: buildozer android debug
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
+          sudo apt install -y python3-pip python3-setuptools python3-dev
+          pip3 install --upgrade pip
+          pip3 install buildozer cython Kivy
+
+      - name: Build APK with Buildozer
+        run: |
+          # The yes command automatically answers "y" to accept the Android SDK license terms
+          yes | buildozer android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
